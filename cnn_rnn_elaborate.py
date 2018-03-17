@@ -31,18 +31,33 @@ def make_model(input_shape):
                                      strides=1,
                                      padding='same'),
                               batch_input_shape=[1, Tx, 1, x, y, z]))
-    print(model.output_shape); exit()
+
     model.add(Activation('relu'))
-    model.add(TimeDistributed(MaxPooling3D(pool_size=(5, 5, 5))))
+    # model.add(TimeDistributed(MaxPooling3D(pool_size=(2, 2, 2))))
+
+    print(model.output_shape)
+
 
     model.add(TimeDistributed(Conv3D(filters=32,
-                                     kernel_size=3,
+                                     kernel_size=5,
                                      strides=1,
-                                     padding='same')))
+                                     padding='valid')))
     model.add(Activation('relu'))
-    model.add(TimeDistributed(MaxPooling3D(pool_size=(5, 5, 5))))
+    model.add(TimeDistributed(MaxPooling3D(pool_size=(4, 4, 2))))
+
+    print(model.output_shape)
+
+    model.add(TimeDistributed(Conv3D(filters=32,
+                                     kernel_size=5,
+                                     strides=3,
+                                     padding='valid')))
+    model.add(Activation('relu'))
+
+    print(model.output_shape)
+
 
     model.add(TimeDistributed(Flatten()))
+    print(model.output_shape); exit()
 
     model.add(LSTM(100, return_sequences=False))
     model.add(Dense(1, batch_input_shape=(None, 100),  activation='sigmoid'))
