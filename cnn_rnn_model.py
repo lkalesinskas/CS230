@@ -9,14 +9,16 @@ import os
 import pandas as pd
 K.set_image_data_format('channels_first')
 
-data_path = 'EMC/'
+data_path = "C:\\Users\\Larry\\NilearnStuff\\FinalDataset"
 
 
 np.random.seed(10)
 def batch_generator(n=1):
     files = [os.path.join(data_path, k) for k in os.listdir(data_path) if 'fmri' in k]
-    labels = np.abs(pd.read_csv('EMC_labels.csv').DX_GROUP - 2)
-    for fmri, label in zip(files, labels):
+    files = np.random.permutation(files)
+    for fmri in files:
+        label = fmri.split('_')[1]
+        label = 0 if label == 'healthy' else 1
         img = image.load_img(fmri).get_data()
         x, y, z, Tx = img.shape
         yield (img.reshape(1, Tx, 1, x, y, z), np.array([label]))
@@ -31,16 +33,15 @@ def make_model(input_shape):
                                      strides=1,
                                      padding='same'),
                               batch_input_shape=[1, Tx, 1, x, y, z]))
-    print(model.output_shape); exit()
     model.add(Activation('relu'))
-    model.add(TimeDistributed(MaxPooling3D(pool_size=(5, 5, 5))))
+    model.add(TimeDistributed(MaxPooling3D(pool_size=(2, 2, 2))))
 
     model.add(TimeDistributed(Conv3D(filters=32,
                                      kernel_size=3,
                                      strides=1,
-                                     padding='same')))
+                                     padding='valid')))
     model.add(Activation('relu'))
-    model.add(TimeDistributed(MaxPooling3D(pool_size=(5, 5, 5))))
+    model.add(TimeDistributed(MaxPooling3D(pool_size=(3, 3, 3))))
 
     model.add(TimeDistributed(Flatten()))
 
@@ -58,8 +59,9 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 history = model.fit_generator(generator=batch_generator(),
                               steps_per_epoch=len(files),
-                              verbose=1)
-model.save('cnn_rnn_EMC.h5')
+                              verbose=1,
+                              epochs=5)
+model.save('cnn_rnn_fulldata.h5')
 plt.plot(history.history['acc'])
 plt.show()
 
