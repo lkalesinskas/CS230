@@ -1,28 +1,25 @@
 from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
+from keras.layers.core import Dense, Dropout, Activation, Flatten, Reshape
 from keras.layers import Input, Conv3D, MaxPooling3D, LSTM, TimeDistributed
-# from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 from nilearn import plotting, image
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-
-K.set_image_data_format('channels_last')
+K.set_image_data_format('channels_first')
 
 data_path = 'EMC/'
 
-files = [os.path.join(data_path, k) for k in os.listdir(data_path) if 'fmri' in k]
-# y = np.random.randint(0, 2, size=len(files))
 
 np.random.seed(10)
-def batch_generator(images, n=1):
-    for fmri in images:
+def batch_generator(n=1):
+    files = [os.path.join(data_path, k) for k in os.listdir(data_path) if 'fmri' in k]
+    labels = np.abs(pd.read_csv('EMC_labels.csv').DX_GROUP - 2)
+    for fmri, label in zip(files, labels):
         img = image.load_img(fmri).get_data()
         x, y, z, Tx = img.shape
-        yield (img.reshape(Tx, 1, x, y, z), np.random.randint(low=0, high=1))
+        yield (img.reshape(1, Tx, 1, x, y, z), np.array([label]))
 
 
 def make_model(input_shape):
@@ -33,7 +30,8 @@ def make_model(input_shape):
                                      kernel_size=5,
                                      strides=1,
                                      padding='same'),
-                              batch_input_shape=[85, 1, 64, 64, 31]))
+                              batch_input_shape=[1, Tx, 1, x, y, z]))
+
     model.add(Activation('relu'))
     model.add(TimeDistributed(MaxPooling3D(pool_size=(5, 5, 5))))
 
@@ -46,73 +44,22 @@ def make_model(input_shape):
 
     model.add(TimeDistributed(Flatten()))
 
-    model.add(LSTM(100, return_sequences=True))
-    model.add(Dense(1, activation='sigmoid'))
-    #probably add another time distributed convolution here: memory permitting
+    model.add(LSTM(100, return_sequences=False))
+    model.add(Dense(1, batch_input_shape=(None, 100),  activation='sigmoid'))
 
     return model
 
 
 
+files = [os.path.join(data_path, k) for k in os.listdir(data_path) if 'fmri' in k]
 model = make_model((85, 64, 64, 31))
 model.compile(optimizer='adam',
-              loss='categorical_crossentropy',
+              loss='binary_crossentropy',
               metrics=['accuracy'])
-history = model.fit_generator(generator=batch_generator(files),
-                              steps_per_epoch=len(files))
+history = model.fit_generator(generator=batch_generator(),
+                              steps_per_epoch=len(files),
+                              verbose=1)
+model.save('cnn_rnn_EMC.h5')
 plt.plot(history.history['acc'])
 plt.show()
-
-
-
-#
-# X = Input((64, 64, 31))
-#
-# for time in range(Tx):
-#
-#     #LAYER 1 (convolution 5x5x5)
-#     X = Conv3D(input_shape=[None, 1, 64, 64, 31],
-#                      filters=16,
-#                      kernel_size=5,
-#                      strides=3,
-#                      padding='same',
-#                      kernel_initializer='glorot_uniform')(X)
-#
-#     X = Activation('relu')(X)
-#
-#     X = MaxPooling3D(pool_size=(5, 5, 5))(X)
-#
-#
-#     #LAYER 2 (convolution 3x3x3)
-#     X = Conv3D(filters=32,
-#                      kernel_size=5,
-#                      strides=3,
-#                      padding='same',
-#                      kernel_initializer='glorot_uniform')(X)
-#
-#     X = Activation('relu')(X)
-#     X = MaxPooling3D(pool_size=(5, 5, 5))(X)
-#
-#
-#     #LAYER 3(fully connected)
-#     X = Flatten()(X)
-#     X = Dense(model.output_shape[1],
-#                     kernel_initializer='glorot_uniform',
-#                     activation='relu')(X)
-#     #LAYER 4(output)
-#     X = Dense(32,
-#                     kernel_initializer='uniform',
-#                     activation='sigmoid')(X)
-#
-#     X = LSTM(32, return_sequence = True)(X)
-#
-#     X = LSTM(128, retrun_sequence = False)(X)
-#
-#     X = Dense(1)(X)
-#
-#     X = Activation ('sigmoid')(X)
-#
-#     model = Model(inputs = , outputs = )
-#
-
 
