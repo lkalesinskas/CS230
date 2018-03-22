@@ -50,10 +50,10 @@ def make_model(input_shape):
 
 
 data_path = "C:\\Users\\Larry\\NilearnStuff\\FinalDataset"
-n_epochs = 5
+n_epochs = 10
 
 files = [os.path.join(data_path, k) for k in os.listdir(data_path) if 'fmri' in k]
-perm_files = np.random.permutation(files)
+perm_files = np.random.permutation(files)[:200]
 
 train_size = int(len(perm_files) * 0.7)
 test_size = val_size = int(len(perm_files) * 0.15)
@@ -70,7 +70,7 @@ model.compile(optimizer='adam',
 
 history = model.fit_generator(generator=batch_generator(train_samples, n_epochs=n_epochs),
                               steps_per_epoch=len(train_samples),
-                              validation_data=batch_generator(val_samples, n_epochs=1),
+                              validation_data=batch_generator(val_samples, n_epochs=n_epochs),
                               validation_steps=len(val_samples),
                               verbose=1,
                               epochs=n_epochs)
