@@ -65,9 +65,9 @@ def make_model():
     return model
 
 
-n_epochs=5
+n_epochs=10
 files = [os.path.join(data_path, k) for k in os.listdir(data_path) if 'fmri' in k]
-perm_files = np.random.permutation(files)
+perm_files = np.random.permutation(files)[:200]
 
 train_size = int(len(perm_files) * 0.7)
 test_size = val_size = int(len(perm_files) * 0.15)
@@ -90,14 +90,10 @@ history = model.fit_generator(generator=batch_generator(train_samples, n_epochs=
                               validation_steps=len(val_samples),
                               verbose=1,
                               epochs=n_epochs)
-model.save('cnn_video_alldata.h5')
-plt.plot(history.history['acc'])
-plt.show()
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\cnn_video_train.txt", history.history['acc'])
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\cnn_video_validation.txt", history.history['val_acc'])
 
 
-#
-#
-#
 # files = [os.path.join(data_path, k) for k in os.listdir(data_path) if 'fmri' in k]
 # model = make_model()
 #

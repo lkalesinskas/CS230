@@ -102,8 +102,8 @@ history = model.fit_generator(generator=batch_generator(train_samples, n_epochs=
                               verbose=1,
                               epochs=n_epochs)
 
-plt.plot(history.history['acc'])
-plt.show()
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\slices_train.txt", history.history['acc'])
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\slices_validation.txt", history.history['val_acc'])
 
 
-model.save('cnn_MRI_15slices_200.h5')
+#model.save('cnn_MRI_15slices_200.h5')

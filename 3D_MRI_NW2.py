@@ -10,12 +10,14 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Conv3D, MaxPooling3D
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
+from keras.optimizers import Adam
 from keras import regularizers
 import matplotlib.pyplot as plt
 K.set_image_data_format('channels_last')
 
 
 def batch_generator(files, n_epochs):
+    files = np.array(files)
     while True:
         for mri in files:
             label = mri.split('_')[1]
@@ -27,12 +29,13 @@ def batch_generator(files, n_epochs):
             yield (img.reshape(1, x, y, z, 1), np.array([label]))
 
 
+
 def make_model():
     model = Sequential()
 
     #LAYER 1 (convolution 5x5x5)
     model.add(Conv3D(batch_input_shape=[None, 128, 128, 128, 1],
-                     filters=16,
+                     filters=20,
                      kernel_size=5,
                      strides=3,
                      padding='valid', kernel_regularizer=regularizers.l2(0.01)))
@@ -51,7 +54,7 @@ def make_model():
     model.add(Activation('relu'))
     model.add(MaxPooling3D(pool_size=(2, 2, 2)))
 
-    model.add(Dropout(rate=0.15))
+    model.add(Dropout(rate=0.1))
 
     model.add(Flatten())
     model.add(Dense(100,
@@ -79,7 +82,7 @@ data_path = "C:\\Users\\Larry\\NilearnStuff\\FinalDataset"
 # data_path = 'EMC'
 np.random.seed(10)
 
-n_epochs = 25
+n_epochs = 30
 
 files = [os.path.join(data_path, k) for k in os.listdir(data_path) if '_mri' in k]
 perm_files = np.random.permutation(files)     #ONLY FIRST 200 DATAPOINTS
@@ -134,5 +137,5 @@ print('accuracy', a)
 train_acc = history.history['acc']
 val_acc = history.history['val_acc']
 
-np.savetxt("C:\\Users\\Larry\\NilearnStuff\\reg_train_accuracy.txt", train_acc)
-np.savetxt("C:\\Users\\Larry\\NilearnStuff\\reg_validation_accuracy.txt", val_acc)
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\NW2_train_accuracy.txt", train_acc)
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\NW2_validation_accuracy.txt", val_acc)

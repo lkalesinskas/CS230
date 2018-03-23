@@ -84,7 +84,7 @@ np.random.seed(10)
 n_epochs = 10
 
 files = [os.path.join(data_path, k) for k in os.listdir(data_path) if '_mri' in k]
-perm_files = np.random.permutation(files)#[:200]     #ONLY FIRST 200 DATAPOINTS
+perm_files = np.random.permutation(files)[:200]     #ONLY FIRST 200 DATAPOINTS
 
 
 train_size = int(len(perm_files) * 0.7)
@@ -107,8 +107,8 @@ history = model.fit_generator(generator=batch_generator(train_samples, n_epochs=
                               verbose=1,
                               epochs=n_epochs)
 
-plt.plot(history.history['acc'])
-plt.show()
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\slices_single_train.txt", history.history['acc'])
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\slices_single_validation.txt", history.history['val_acc'])
 
 
 # model.save('cnn_MRI_1slice_200.h5')

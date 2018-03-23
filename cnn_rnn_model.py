@@ -78,7 +78,6 @@ history = model.fit_generator(generator=batch_generator(train_samples, n_epochs=
 # model.evaluate_generator(generator=batch_generator(files[test_samples]),
 #                          steps=len(test_samples),
 #
-model.save('cnn_rnn_fulldata.h5')
-plt.plot(history.history['acc'])
-plt.show()
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\cnn_rnn_train.txt", history.history['acc'])
+np.savetxt("C:\\Users\\Larry\\NilearnStuff\\cnn_rnn_validation.txt", history.history['val_acc'])
 

@@ -14,4 +14,5 @@ plt.legend(loc='upper left')
 
 plt.xlabel('Number of Epochs')
 plt.ylabel('Accuracy')
-plt.savefig("C:\\Users\\Larry\\NilearnStuff\\FinalDataset\\reg_accuracies.svg")
+plt.ylim([0, 1])
+plt.savefig("C:\\Users\\Larry\\NilearnStuff\\reg_accuracies.svg")
